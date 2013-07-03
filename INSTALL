@@ -1,0 +1,4 @@
+1. Installation in virtualenv
+pip install -e .
+or
+easy_install .
