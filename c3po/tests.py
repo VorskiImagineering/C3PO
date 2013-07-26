@@ -6,7 +6,7 @@ import os
 import shutil
 import unittest
 
-import gdata
+import gdata.data
 from c3po.mod.converters import csv_to_ods
 
 from mod.communicator import Communicator
@@ -15,8 +15,7 @@ from mod.communicator import Communicator
 TESTS_URL = 'https://docs.google.com/spreadsheet/ccc?key=0AnVOHClWGpLZdGFpQmpVUUx2eUg4Z0NVMGVQX3NrNkE#gid=0'
 
 
-PO_CONTENT_LOCAL = [
-r'''# test
+PO_CONTENT_LOCAL = [r'''# test
 msgid ""
 msgstr ""
 "MIME-Version: 1.0\n"
@@ -32,8 +31,7 @@ msgstr "Str1 local"
 msgid "Translation2"
 msgstr ""
 
-''',
-r'''# test
+''', r'''# test
 msgid ""
 msgstr ""
 "MIME-Version: 1.0\n"
@@ -49,8 +47,7 @@ msgstr "Str1 local"
 msgid "Custom2"
 msgstr ""
 
-'''
-]
+''']
 
 CSV_TRANS_GDOCS = [
     ['comment', 'msgid', 'en:msgstr', 'pl:msgstr', 'jp:msgstr'],
@@ -68,8 +65,7 @@ CSV_META_GDOCS = [
     ['django.po', "{'occurrences': [(u'tpl/base_site.html', u'44')]}"],
 ]
 
-PO_CONTENT_MERGED = [
-r'''# test
+PO_CONTENT_MERGED = [r'''# test
 msgid ""
 msgstr ""
 "MIME-Version: 1.0\n"
@@ -88,8 +84,7 @@ msgstr "Str3"
 #: tpl/base_site.html:44
 msgid "Translation2"
 msgstr ""
-''',
-r'''# test
+''', r'''# test
 msgid ""
 msgstr ""
 "MIME-Version: 1.0\n"
@@ -109,7 +104,6 @@ msgstr "Str3"
 msgid "Custom2"
 msgstr ""
 ''']
-
 
 
 class TestCommunicator(unittest.TestCase):

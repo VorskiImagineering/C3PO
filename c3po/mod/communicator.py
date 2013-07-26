@@ -88,8 +88,8 @@ class Communicator(object):
 
     def _clear_temp(self):
         temp_files = [LOCAL_ODS, GDOCS_TRANS_CSV, GDOCS_META_CSV, LOCAL_TRANS_CSV, LOCAL_META_CSV]
-        for file in temp_files:
-            file_path = os.path.join(self.temp_path, file)
+        for temp_file in temp_files:
+            file_path = os.path.join(self.temp_path, temp_file)
             if os.path.exists(file_path):
                 os.remove(file_path)
 

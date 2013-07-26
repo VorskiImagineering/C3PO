@@ -8,8 +8,8 @@ import settings_default
 
 
 class Singleton(type):
-    def __init__(cls, name, bases, dict):
-        super(Singleton, cls).__init__(name, bases, dict)
+    def __init__(cls, name, bases, sdict):
+        super(Singleton, cls).__init__(name, bases, sdict)
         cls.instance = None
 
     def __call__(cls, *args, **kwargs):

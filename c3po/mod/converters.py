@@ -18,8 +18,8 @@ class UTF8Recoder(object):
     """
     Iterator that reads an encoded stream and reencodes the input to UTF-8
     """
-    def __init__(self, file, encoding):
-        self.reader = codecs.getreader(encoding)(file)
+    def __init__(self, fd, encoding):
+        self.reader = codecs.getreader(encoding)(fd)
 
     def __iter__(self):
         return self
@@ -73,7 +73,7 @@ class UnicodeWriter(object):
         # write to the target stream
         self.stream.write(data)
         # empty queue
-        self.queue.truncate(0)
+        self.queue.truncate()
 
     def writerows(self, rows):
         for row in rows:
@@ -104,11 +104,11 @@ def _write_header(po_path, lang, header):
     po_file = open(po_path, 'w')
     po_file.write(header + '\n')
     po_file.write('msgid ""' +
-    '\nmsgstr ""' +
-    '\n"MIME-Version: ' + settings.METADATA['MIME-Version'] + r'\n"'
-    '\n"Content-Type: ' + settings.METADATA['Content-Type'] + r'\n"'
-    '\n"Content-Transfer-Encoding: ' + settings.METADATA['Content-Transfer-Encoding'] + r'\n"'
-    '\n"Language: ' + lang + r'\n"' + '\n')
+                  '\nmsgstr ""' +
+                  '\n"MIME-Version: ' + settings.METADATA['MIME-Version'] + r'\n"'
+                  '\n"Content-Type: ' + settings.METADATA['Content-Type'] + r'\n"'
+                  '\n"Content-Transfer-Encoding: ' + settings.METADATA['Content-Transfer-Encoding'] + r'\n"'
+                  '\n"Language: ' + lang + r'\n"' + '\n')
     po_file.close()
 
 
