@@ -144,16 +144,16 @@ class TestCommunicator(unittest.TestCase):
         with open(temp_meta_path, 'wb') as csv_file:
             writer = csv.writer(csv_file)
             writer.writerows(CSV_META_GDOCS)
-            
+
         csv_to_ods(temp_trans_path, temp_meta_path, temp_ods_path)
 
         entry = self.com.gd_client.GetResourceById(self.com.key)
         media = gdata.data.MediaSource(file_path=temp_ods_path,
                                        content_type='application/x-vnd.oasis.opendocument.spreadsheet')
         self.com.gd_client.UpdateResource(entry, media=media, update_metadata=False)
-        
+
         self.com.synchronize(self.languages, self.locale_root, self.po_files_path, self.header)
-        
+
         for lang in self.languages:
             lang_path = os.path.join(self.locale_root, lang, self.po_files_path)
 
