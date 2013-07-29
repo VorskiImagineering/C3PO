@@ -7,7 +7,7 @@ import shutil
 import unittest
 
 import gdata.data
-from c3po.mod.converters import csv_to_ods
+from c3po.converters.po_ods import csv_to_ods
 
 from mod.communicator import Communicator
 
