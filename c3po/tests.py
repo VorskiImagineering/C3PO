@@ -127,7 +127,8 @@ class TestCommunicator(unittest.TestCase):
             with open(os.path.join(lang_path, self.po_filenames[1]), 'wb') as po_file:
                 po_file.write(PO_CONTENT_LOCAL[1] % lang)
 
-        self.com = Communicator(url=TESTS_URL)
+        self.com = Communicator(url=TESTS_URL, languages=self.languages, locale_root=self.locale_root,
+                                po_files_path=self.po_files_path, header=self.header)
         self.com.clear()
 
     def tearDown(self):
@@ -152,7 +153,7 @@ class TestCommunicator(unittest.TestCase):
                                        content_type='application/x-vnd.oasis.opendocument.spreadsheet')
         self.com.gd_client.UpdateResource(entry, media=media, update_metadata=False)
 
-        self.com.synchronize(self.languages, self.locale_root, self.po_files_path, self.header)
+        self.com.synchronize()
 
         for lang in self.languages:
             lang_path = os.path.join(self.locale_root, lang, self.po_files_path)

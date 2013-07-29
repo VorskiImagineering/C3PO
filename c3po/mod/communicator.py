@@ -45,8 +45,13 @@ class Communicator(object):
     url = None
     source = None
     temp_path = None
+    languages = None
+    locale_root = None
+    po_files_path = None
+    header = None
 
-    def __init__(self, email=None, password=None, url=None, source=None, temp_path=None):
+    def __init__(self, email=None, password=None, url=None, source=None, temp_path=None,
+                 languages=None, locale_root=None, po_files_path=None, header=None):
         """
         Initialize object with all necessary client information and log in
         :param email: user gmail account address
@@ -55,7 +60,8 @@ class Communicator(object):
         :param temp_path: path where temporary files will be saved
         :param source: source information to show on web
         """
-        construct_vars = ('email', 'password', 'url', 'source', 'temp_path')
+        construct_vars = ('email', 'password', 'url', 'source', 'temp_path',
+                          'languages', 'locale_root', 'po_files_path', 'header')
         for cv in construct_vars:
             if locals().get(cv) is None:
                 setattr(self, cv, getattr(settings, cv.upper()))
@@ -126,7 +132,7 @@ class Communicator(object):
         except (IOError, OSError, RequestError) as e:
             raise PODocsError(e)
 
-    def synchronize(self, languages=None, locale_root=None, po_files_path=None, header=None):
+    def synchronize(self):
         """
         Synchronize local po files with translations on GDocs Spreadsheet.
         Downloads two csv files, merges them and converts into po files structure.
@@ -135,15 +141,6 @@ class Communicator(object):
         :param po_files_path: path from lang directory to po file
         :param header: header which will be put on top of every po file when downloading
         """
-        if languages is None:
-            languages = settings.LANGUAGES
-        if locale_root is None:
-            locale_root = settings.LOCALE_ROOT
-        if po_files_path is None:
-            po_files_path = settings.PO_FILES_PATH
-        if header is None:
-            header = settings.HEADER
-
         gdocs_trans_csv = os.path.join(self.temp_path, GDOCS_TRANS_CSV)
         gdocs_meta_csv = os.path.join(self.temp_path, GDOCS_META_CSV)
         local_trans_csv = os.path.join(self.temp_path, LOCAL_TRANS_CSV)
@@ -152,61 +149,47 @@ class Communicator(object):
         entry = self._download_csv_from_gdocs(gdocs_trans_csv, gdocs_meta_csv)
 
         if entry is None:
-            self.upload(languages, locale_root, po_files_path)
+            self.upload(self.languages, self.locale_root, self.po_files_path)
 
-        self._merge_local_and_gdoc(entry, languages, locale_root, po_files_path,
+        self._merge_local_and_gdoc(entry, self.languages, self.locale_root, self.po_files_path,
                                    local_trans_csv, local_meta_csv, gdocs_trans_csv, gdocs_meta_csv)
 
         try:
-            csv_to_po(local_trans_csv, local_meta_csv, locale_root, po_files_path, header)
+            csv_to_po(local_trans_csv, local_meta_csv, self.locale_root, self.po_files_path, self.header)
         except IOError as e:
             raise PODocsError(e)
 
         self._clear_temp()
 
-    def download(self, locale_root=None, po_files_path=None, header=None):
+    def download(self):
         """
         Download po file from GDocs. If locale_root not specified, downloads csv file
         :param locale_root: path to locale root folder containing directories with languages
         :param po_files_path: path from lang directory to po file
         :param header: header which will be put on top of every po file when downloading
         """
-        if locale_root is None:
-            locale_root = settings.LOCALE_ROOT
-        if po_files_path is None:
-            po_files_path = settings.PO_FILES_PATH
-        if header is None:
-            header = settings.HEADER
-
         trans_csv_path = os.path.realpath(os.path.join(self.temp_path, GDOCS_TRANS_CSV))
         meta_csv_path = os.path.realpath(os.path.join(self.temp_path, GDOCS_META_CSV))
 
         self._download_csv_from_gdocs(trans_csv_path, meta_csv_path)
 
         try:
-            csv_to_po(trans_csv_path, meta_csv_path, locale_root, po_files_path, header=header)
+            csv_to_po(trans_csv_path, meta_csv_path, self.locale_root, self.po_files_path, header=self.header)
         except IOError as e:
             raise PODocsError(e)
 
         self._clear_temp()
 
-    def upload(self, languages=None, locale_root=None, po_files_path=None):
+    def upload(self):
         """
         Upload all po files to GDocs ignoring conflicts
         :param languages: list of language codes
         :param locale_root: path to locale root folder containing directories with languages
         :param po_files_path: path from lang directory to po file
         """
-        if languages is None:
-            languages = settings.LANGUAGES
-        if locale_root is None:
-            locale_root = settings.LOCALE_ROOT
-        if po_files_path is None:
-            po_files_path = settings.PO_FILES_PATH
-
         local_ods_path = os.path.join(self.temp_path, LOCAL_ODS)
         try:
-            po_to_ods(languages, locale_root, po_files_path, local_ods_path)
+            po_to_ods(self.languages, self.locale_root, self.po_files_path, local_ods_path)
         except (IOError, OSError) as e:
             raise PODocsError(e)
 
