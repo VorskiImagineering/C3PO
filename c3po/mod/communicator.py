@@ -104,13 +104,18 @@ class Communicator(object):
                 os.remove(file_path)
 
     def _download_csv_from_gdocs(self, trans_csv_path, meta_csv_path):
+        """
+        Download csv from GDoc.
+        :param trans_csv_path: path to csv with translations
+        :param meta_csv_path: path to csv with metadata
+        :return: returns resource if worksheets are present
+        :except: raises PODocsError with info if communication with GDocs lead to any errors
+        """
         try:
             entry = self.gd_client.GetResourceById(self.key)
             self.gd_client.DownloadResource(entry, trans_csv_path, extra_params={'gid': 0, 'exportFormat': 'csv'})
             self.gd_client.DownloadResource(entry, meta_csv_path, extra_params={'gid': 1, 'exportFormat': 'csv'})
         except (RequestError, IOError) as e:
-            if 'Sheet 1 not found' in str(e):
-                return None
             raise PODocsError(e)
         return entry
 
@@ -122,10 +127,19 @@ class Communicator(object):
         except (RequestError, IOError) as e:
             raise PODocsError(e)
 
-    def _merge_local_and_gdoc(self, entry, languages, locale_root, po_files_path,
-                              local_trans_csv, local_meta_csv, gdocs_trans_csv, gdocs_meta_csv):
+    def _merge_local_and_gdoc(self, entry, local_trans_csv, local_meta_csv, gdocs_trans_csv, gdocs_meta_csv):
+        """
+        Download csv from GDoc.
+        :param entry: GDoc resource to merge
+        :param local_trans_csv: local csv with translations 
+        :param local_meta_csv: local metadata csv
+        :param gdocs_trans_csv: gdocs csv with translations 
+        :param gdocs_meta_csv: gdocs metadata csv
+        :return: returns resource if worksheets are present
+        :except: raises PODocsError with info if communication with GDocs lead to any errors
+        """
         try:
-            new_translations = po_to_csv_merge(languages, locale_root, po_files_path,
+            new_translations = po_to_csv_merge(self.languages, self.locale_root, self.po_files_path,
                                                local_trans_csv, local_meta_csv, gdocs_trans_csv, gdocs_meta_csv)
             if new_translations:
                 local_ods = os.path.join(self.temp_path, LOCAL_ODS)
@@ -147,13 +161,15 @@ class Communicator(object):
         local_trans_csv = os.path.join(self.temp_path, LOCAL_TRANS_CSV)
         local_meta_csv = os.path.join(self.temp_path, LOCAL_META_CSV)
 
-        entry = self._download_csv_from_gdocs(gdocs_trans_csv, gdocs_meta_csv)
+        try:
+            entry = self._download_csv_from_gdocs(gdocs_trans_csv, gdocs_meta_csv)
+        except PODocsError as e:
+            if 'Sheet 1 not found' in str(e):
+                self.upload()
+            else:
+                raise PODocsError(e)
 
-        if entry is None:
-            self.upload(self.languages, self.locale_root, self.po_files_path)
-
-        self._merge_local_and_gdoc(entry, self.languages, self.locale_root, self.po_files_path,
-                                   local_trans_csv, local_meta_csv, gdocs_trans_csv, gdocs_meta_csv)
+        self._merge_local_and_gdoc(entry, local_trans_csv, local_meta_csv, gdocs_trans_csv, gdocs_meta_csv)
 
         try:
             csv_to_po(local_trans_csv, local_meta_csv, self.locale_root, self.po_files_path, self.header)
