@@ -59,6 +59,10 @@ class Communicator(object):
         :param url: url to spreadsheet where translations are or will be placed
         :param temp_path: path where temporary files will be saved
         :param source: source information to show on web
+        :param languages: list of languages
+        :param locale_root: path to locale root folder containing directories with languages
+        :param po_files_path: path from lang directory to po file
+        :param header: header which will be put on top of every po file when downloading
         """
         construct_vars = ('email', 'password', 'url', 'source', 'temp_path',
                           'languages', 'locale_root', 'po_files_path', 'header')
@@ -136,10 +140,7 @@ class Communicator(object):
         """
         Synchronize local po files with translations on GDocs Spreadsheet.
         Downloads two csv files, merges them and converts into po files structure.
-        :param languages: list of languages
-        :param locale_root: path to locale root folder containing directories with languages
-        :param po_files_path: path from lang directory to po file
-        :param header: header which will be put on top of every po file when downloading
+        If new msgids appeared in po files, this method creates new ods with appended content, and sends it to GDocs.
         """
         gdocs_trans_csv = os.path.join(self.temp_path, GDOCS_TRANS_CSV)
         gdocs_meta_csv = os.path.join(self.temp_path, GDOCS_META_CSV)
@@ -163,10 +164,7 @@ class Communicator(object):
 
     def download(self):
         """
-        Download po file from GDocs. If locale_root not specified, downloads csv file
-        :param locale_root: path to locale root folder containing directories with languages
-        :param po_files_path: path from lang directory to po file
-        :param header: header which will be put on top of every po file when downloading
+        Download csv files from GDocs and convert them into po files structure.
         """
         trans_csv_path = os.path.realpath(os.path.join(self.temp_path, GDOCS_TRANS_CSV))
         meta_csv_path = os.path.realpath(os.path.join(self.temp_path, GDOCS_META_CSV))
@@ -182,10 +180,8 @@ class Communicator(object):
 
     def upload(self):
         """
-        Upload all po files to GDocs ignoring conflicts
-        :param languages: list of language codes
-        :param locale_root: path to locale root folder containing directories with languages
-        :param po_files_path: path from lang directory to po file
+        Upload all po files to GDocs ignoring conflicts. This method looks for all msgids in po_files and sends them
+        as ods to GDocs Spreadsheet.
         """
         local_ods_path = os.path.join(self.temp_path, LOCAL_ODS)
         try:
@@ -199,7 +195,7 @@ class Communicator(object):
 
     def clear(self):
         """
-        Clear GDoc sending empty csv
+        Clear GDoc Spreadsheet by sending empty csv file.
         """
         empty_file_path = os.path.join(self.temp_path, 'empty.csv')
         try:

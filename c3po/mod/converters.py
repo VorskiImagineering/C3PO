@@ -13,6 +13,7 @@ from odslib import ODS
 
 from c3po.conf import settings
 
+
 class UTF8Recoder(object):
     """
     Iterator that reads an encoded stream and reencodes the input to UTF-8
