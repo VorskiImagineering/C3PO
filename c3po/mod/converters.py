@@ -84,7 +84,9 @@ class UnicodeWriter(object):
 
 
 def _get_new_csv_writers(trans_title, meta_title, trans_csv_path, meta_csv_path):
-    # Prepare new csv writers, write title rows and return them
+    """
+    Prepare new csv writers, write title rows and return them.
+    """
     trans_writer = UnicodeWriter(trans_csv_path)
     trans_writer.writerow(trans_title)
 
@@ -95,12 +97,18 @@ def _get_new_csv_writers(trans_title, meta_title, trans_csv_path, meta_csv_path)
 
 
 def _get_all_po_filenames(locale_root, lang, po_files_path):
-    # get all po files from lang folder
+    """
+    Get all po filenames from locale folder and return list of them.
+    Assumes a dictionary structure <locale_root>/<lang>/<po_files_path>/<filename>.
+    """
     all_files = os.listdir(os.path.join(locale_root, lang, po_files_path))
     return filter(lambda s: s.endswith('.po'), all_files)
 
 
 def _write_header(po_path, lang, header):
+    """
+    Write header into po file for specific lang. Metadata are read from settings file.
+    """
     po_file = open(po_path, 'w')
     po_file.write(header + '\n')
     po_file.write('msgid ""' +
@@ -113,6 +121,9 @@ def _write_header(po_path, lang, header):
 
 
 def _prepare_locale_dirs(languages, locale_root):
+    """
+    Prepare locale dirs for writing po files. Create new directories if they doesn't exist.
+    """
     trans_languages = []
     for i, t in enumerate(languages):
         lang = t.split(':')[0]
@@ -124,7 +135,10 @@ def _prepare_locale_dirs(languages, locale_root):
 
 
 def _write_entries(po_files, languages, msgid, msgstrs, metadata, comment):
-    # write msgstr for every language
+    """
+    Write msgstr for every language with all needed metadata and comment.
+    Metadata are parser from string into dict, so read them only from gdocs.
+    """
     for i, lang in enumerate(languages):
         meta = ast.literal_eval(metadata)
         entry = polib.POEntry(**meta)
@@ -136,6 +150,11 @@ def _write_entries(po_files, languages, msgid, msgstrs, metadata, comment):
 
 
 def _prepare_polib_files(files_dict, filename, languages, locale_root, po_files_path, header):
+    """
+    Prepare polib file object for writing/reading from them. Create directories and write header if needed.
+    For each language, ensure there's a translation file named "filename" in the correct place.
+    Assumes (and creates) a dictionary structure <locale_root>/<lang>/<po_files_path>/<filename>.
+    """
     files_dict[filename] = {}
     for lang in languages:
         file_path = os.path.join(locale_root, lang, po_files_path)
@@ -149,6 +168,10 @@ def _prepare_polib_files(files_dict, filename, languages, locale_root, po_files_
 
 
 def _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filename):
+    """
+    Write translations from po files into ods one file.
+    Assumes a dictionary structure <locale_root>/<lang>/<po_files_path>/<filename>.
+    """
     ods.content.getSheet(0)
     for i, lang in enumerate(languages[1:]):
         lang_po_path = os.path.join(locale_root, lang, po_files_path, po_filename)
@@ -164,6 +187,10 @@ def _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filenam
 
 
 def _prepare_ods_columns(ods, trans_title_row):
+    """
+    Prepare columns in new ods file, create new sheet for metadata, set columns color and width.
+    Set formatting style info in your settings.py file in ~/.c3po/ folder.
+    """
     ods.content.getSheet(0).setSheetName('Translations')
     ods.content.makeSheet('Meta options')
     ods.content.getColumn(0).setWidth('1.5in')
@@ -182,6 +209,9 @@ def _prepare_ods_columns(ods, trans_title_row):
 
 
 def _write_row_into_ods(ods, sheet_no, row_no, row):
+    """
+    Write row with translations to ods file into specified sheet and row_no.
+    """
     ods.content.getSheet(sheet_no)
     for j, col in enumerate(row):
         cell = ods.content.getCell(j, row_no+1)
@@ -193,6 +223,10 @@ def _write_row_into_ods(ods, sheet_no, row_no, row):
 
 
 def _write_new_messages(po_file_path, trans_writer, meta_writer, msgids, languages_num):
+    """
+    Write new msgids which appeared in po files with empty msgstrs values and metadata.
+    Look for all new msgids which are diffed with msgids list provided as an argument.
+    """
     po_filename = os.path.basename(po_file_path)
     po_file = polib.pofile(po_file_path)
 

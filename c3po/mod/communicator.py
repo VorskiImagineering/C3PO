@@ -76,6 +76,9 @@ class Communicator(object):
         self._ensure_temp_path_exists()
 
     def _login(self):
+        """
+        Login into Google Docs with user authentication info.
+        """
         try:
             self.gd_client = gdata.docs.client.DocsClient()
             self.gd_client.ClientLogin(self.email, self.password, self.source)
@@ -83,6 +86,9 @@ class Communicator(object):
             raise PODocsError(e)
 
     def _get_gdocs_key(self):
+        """
+        Parse GDocs key from Spreadsheet url.
+        """
         try:
             args = urlparse.parse_qs(urlparse.urlparse(self.url).query)
             self.key = args['key'][0]
@@ -90,6 +96,9 @@ class Communicator(object):
             raise PODocsError(e)
 
     def _ensure_temp_path_exists(self):
+        """
+        Make sure temp directory exists and create one if it does not.
+        """
         try:
             if not os.path.exists(self.temp_path):
                 os.mkdir(self.temp_path)
@@ -97,6 +106,9 @@ class Communicator(object):
             raise PODocsError(e)
 
     def _clear_temp(self):
+        """
+        Clear temp directory from created csv and ods files during communicator operations.
+        """
         temp_files = [LOCAL_ODS, GDOCS_TRANS_CSV, GDOCS_META_CSV, LOCAL_TRANS_CSV, LOCAL_META_CSV]
         for temp_file in temp_files:
             file_path = os.path.join(self.temp_path, temp_file)
@@ -106,8 +118,6 @@ class Communicator(object):
     def _download_csv_from_gdocs(self, trans_csv_path, meta_csv_path):
         """
         Download csv from GDoc.
-        :param trans_csv_path: path to csv with translations
-        :param meta_csv_path: path to csv with metadata
         :return: returns resource if worksheets are present
         :except: raises PODocsError with info if communication with GDocs lead to any errors
         """
@@ -120,6 +130,9 @@ class Communicator(object):
         return entry
 
     def _upload_file_to_gdoc(self, file_path, content_type='application/x-vnd.oasis.opendocument.spreadsheet'):
+        """
+        Uploads file to GDocs spreadsheet. Content type can be provided as argument, default is ods.
+        """
         try:
             entry = self.gd_client.GetResourceById(self.key)
             media = gdata.data.MediaSource(file_path=file_path, content_type=content_type)
@@ -130,11 +143,6 @@ class Communicator(object):
     def _merge_local_and_gdoc(self, entry, local_trans_csv, local_meta_csv, gdocs_trans_csv, gdocs_meta_csv):
         """
         Download csv from GDoc.
-        :param entry: GDoc resource to merge
-        :param local_trans_csv: local csv with translations 
-        :param local_meta_csv: local metadata csv
-        :param gdocs_trans_csv: gdocs csv with translations 
-        :param gdocs_meta_csv: gdocs metadata csv
         :return: returns resource if worksheets are present
         :except: raises PODocsError with info if communication with GDocs lead to any errors
         """
