@@ -232,7 +232,7 @@ def _write_new_messages(po_file_path, trans_writer, meta_writer, msgids, languag
 
     new_trans = 0
     for entry in po_file:
-        if entry.msgid not in msgids:
+        if entry.msgid.rstrip() not in msgids:
             new_trans += 1
             trans = [entry.tcomment, entry.msgid, entry.msgstr]
             trans += [''] * languages_num
@@ -370,7 +370,7 @@ def po_to_ods(languages, locale_root, po_files_path, temp_file_path):
 
             ods.content.getSheet(0)
             ods.content.getCell(0, i+1).stringValue(entry.tcomment).setCellColor(settings.ODD_COLUMN_BG_COLOR)
-            ods.content.getCell(1, i+1).stringValue(entry.msgid).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
+            ods.content.getCell(1, i+1).stringValue("'" + entry.msgid).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
             ods.content.getCell(2, i+1).stringValue(entry.msgstr).setCellColor(settings.ODD_COLUMN_BG_COLOR)
 
         _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filename)
