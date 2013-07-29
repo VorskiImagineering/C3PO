@@ -13,7 +13,6 @@ from odslib import ODS
 
 from c3po.conf import settings
 
-
 class UTF8Recoder(object):
     """
     Iterator that reads an encoded stream and reencodes the input to UTF-8
@@ -158,7 +157,9 @@ def _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filenam
                 # start from 3 column, 1 row
                 ods.content.getCell(i+3, j+1).stringValue(entry.msgstr)
                 if i % 2 == 1:
-                    ods.content.getCell(j, i+1).setCellColor('#f9f9f9')
+                    ods.content.getCell(j, i+1).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
+                else:
+                    ods.content.getCell(j, i+1).setCellColor(settings.ODD_COLUMN_BG_COLOR)
 
 
 def _prepare_ods_columns(ods, trans_title_row):
@@ -166,22 +167,28 @@ def _prepare_ods_columns(ods, trans_title_row):
     ods.content.makeSheet('Meta options')
     ods.content.getColumn(0).setWidth('1.5in')
     ods.content.getColumn(1).setWidth('5.0in')
-    ods.content.getCell(0, 0).stringValue('file').setCellColor('#d9edf7').setBold(True).setFontColor('#3a87ad')
-    ods.content.getCell(1, 0).stringValue('metadata').setCellColor('#d9edf7').setBold(True).setFontColor('#3a87ad')
+    ods.content.getCell(0, 0).stringValue('file').setCellColor(settings.TITLE_ROW_BG_COLOR) \
+                                                 .setBold(True).setFontColor(settings.TITLE_ROW_FONT_COLOR)
+    ods.content.getCell(1, 0).stringValue('metadata').setCellColor(settings.TITLE_ROW_BG_COLOR) \
+                                                     .setBold(True).setFontColor(settings.TITLE_ROW_FONT_COLOR)
 
     ods.content.getSheet(0)
     for i, title in enumerate(trans_title_row):
-        ods.content.getColumn(i).setWidth('2.5in')
-        ods.content.getCell(i, 0).stringValue(title).setCellColor('#d9edf7').setBold(True).setFontColor('#3a87ad')
-    ods.content.getColumn(0).setWidth('1.5in')
+        ods.content.getColumn(i).setWidth(settings.MSGSTR_COLUMN_WIDTH)
+        ods.content.getCell(i, 0).stringValue(title).setCellColor(settings.TITLE_ROW_BG_COLOR) \
+                                                    .setBold(True).setFontColor(settings.TITLE_ROW_FONT_COLOR)
+    ods.content.getColumn(0).setWidth(settings.NOTES_COLUMN_WIDTH)
 
 
 def _write_row_into_ods(ods, sheet_no, row_no, row):
     ods.content.getSheet(sheet_no)
     for j, col in enumerate(row):
-        ods.content.getCell(j, row_no+1).stringValue(col)
+        cell = ods.content.getCell(j, row_no+1)
+        cell.stringValue(col)
         if j % 2 == 1:
-            ods.content.getCell(j, row_no+1).setCellColor('#f9f9f9')
+            cell.setCellColor(settings.EVEN_COLUMN_BG_COLOR)
+        else:
+            cell.setCellColor(settings.ODD_COLUMN_BG_COLOR)
 
 
 def _write_new_messages(po_file_path, trans_writer, meta_writer, msgids, languages_num):
@@ -323,13 +330,13 @@ def po_to_ods(languages, locale_root, po_files_path, temp_file_path):
             meta.pop('tcomment', None)
 
             ods.content.getSheet(1)
-            ods.content.getCell(0, i+1).stringValue(po_filename)
-            ods.content.getCell(1, i+1).stringValue(str(meta)).setCellColor('#f9f9f9')
+            ods.content.getCell(0, i+1).stringValue(po_filename).setCellColor(settings.ODD_COLUMN_BG_COLOR)
+            ods.content.getCell(1, i+1).stringValue(str(meta)).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
 
             ods.content.getSheet(0)
-            ods.content.getCell(0, i+1).stringValue(entry.tcomment)
-            ods.content.getCell(1, i+1).stringValue(entry.msgid).setCellColor('#f9f9f9')
-            ods.content.getCell(2, i+1).stringValue(entry.msgstr)
+            ods.content.getCell(0, i+1).stringValue(entry.tcomment).setCellColor(settings.ODD_COLUMN_BG_COLOR)
+            ods.content.getCell(1, i+1).stringValue(entry.msgid).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
+            ods.content.getCell(2, i+1).stringValue(entry.msgstr).setCellColor(settings.ODD_COLUMN_BG_COLOR)
 
         _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filename)
 

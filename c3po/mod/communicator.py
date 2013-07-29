@@ -114,7 +114,7 @@ class Communicator(object):
         try:
             entry = self.gd_client.GetResourceById(self.key)
             media = gdata.data.MediaSource(file_path=file_path, content_type=content_type)
-            self.gd_client.UpdateResource(entry, media=media, update_metadata=False)
+            self.gd_client.UpdateResource(entry, media=media, update_metadata=True)
         except (RequestError, IOError) as e:
             raise PODocsError(e)
 
@@ -128,7 +128,7 @@ class Communicator(object):
                 csv_to_ods(local_trans_csv, local_meta_csv, local_ods)
                 media = gdata.data.MediaSource(file_path=local_ods,
                                                content_type='application/x-vnd.oasis.opendocument.spreadsheet')
-                self.gd_client.UpdateResource(entry, media=media, update_metadata=False)
+                self.gd_client.UpdateResource(entry, media=media, update_metadata=True)
         except (IOError, OSError, RequestError) as e:
             raise PODocsError(e)
 
