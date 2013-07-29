@@ -223,10 +223,14 @@ def git_push(git_message=None, git_repository=None, git_branch=None, locale_root
     :param locale_root: path to locale root folder containing directories with languages
     :return: tuple stdout, stderr of completed command
     """
-    construct_vars = ('git_message', 'git_repository', 'git_branch', 'locale_root')
-    for cv in construct_vars:
-        if locals().get(cv) is None:
-            locals()[cv] = getattr(settings, cv.upper())
+    if git_message is None:
+        git_message = settings.GIT_MESSAGE
+    if git_repository is None:
+        git_repository = settings.GIT_REPOSITORY
+    if git_branch is None:
+        git_branch = settings.GIT_BRANCH
+    if locale_root is None:
+        locale_root = settings.LOCALE_ROOT
 
     devnull = open(os.devnull, 'w')
     commands = ['git remote add po_translator ' + git_repository,
@@ -252,10 +256,10 @@ def git_checkout(git_branch=None, locale_root=None):
     :param locale_root: locale folder path
     :return: tuple stdout, stderr of completed command
     """
-    construct_vars = ('git_branch', 'locale_root')
-    for cv in construct_vars:
-        if locals().get(cv) is None:
-            locals()[cv] = getattr(settings, cv.upper())
+    if git_branch is None:
+        git_branch = settings.GIT_BRANCH
+    if locale_root is None:
+        locale_root = settings.LOCALE_ROOT
 
     proc = Popen('git checkout ' + git_branch + ' -- ' + locale_root, shell=True, stdout=PIPE, stderr=PIPE)
     stdout, stderr = proc.communicate()
