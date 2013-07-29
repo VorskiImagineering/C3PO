@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*
 
 import os
+import subprocess
 import urlparse
 from subprocess import Popen, PIPE
 
@@ -254,13 +255,21 @@ def git_push(git_message=None, git_repository=None, git_branch=None, locale_root
     if locale_root is None:
         locale_root = settings.LOCALE_ROOT
 
-    devnull = open(os.devnull, 'w')
-    commands = ['git remote add po_translator ' + git_repository,
-                'git branch ' + git_branch,
-                'git checkout ' + git_branch]
-    for command in commands:
-        Popen(command, shell=True, stdout=devnull, stderr=devnull).wait()
-    devnull.close()
+    try:
+        subprocess.check_call(['git', 'checkout', git_branch])
+    except subprocess.CalledProcessError:
+        try:
+            subprocess.check_call(['git', 'checkout', '-b', git_branch])
+        except subprocess.CalledProcessError as e:
+            raise PODocsError(e)
+
+    try:
+        subprocess.check_call(['git', 'ls-remote', git_repository])
+    except subprocess.CalledProcessError:
+        try:
+            subprocess.check_call(['git', 'remote', 'add', 'po_translator', git_repository])
+        except subprocess.CalledProcessError as e:
+            raise PODocsError(e)
 
     commands = 'git add ' + locale_root + \
                ' && git commit -m "' + git_message + '"' + \
