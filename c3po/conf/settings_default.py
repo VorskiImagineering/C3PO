@@ -36,3 +36,11 @@ METADATA = {
     'Content-Type': 'text/plain; charset=UTF-8',
     'Content-Transfer-Encoding': '8bit',
 }
+
+# ODS Formatting
+ODD_COLUMN_BG_COLOR = '#FFFFFF'
+EVEN_COLUMN_BG_COLOR = '#F9F9F9'
+TITLE_ROW_BG_COLOR = '#D9EDF7'
+TITLE_ROW_FONT_COLOR = '#3A87AD'
+MSGSTR_COLUMN_WIDTH = '2.5in'
+NOTES_COLUMN_WIDTH = '1.5in'

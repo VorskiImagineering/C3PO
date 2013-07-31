@@ -7,7 +7,7 @@ import shutil
 import unittest
 
 import gdata.data
-from c3po.mod.converters import csv_to_ods
+from c3po.converters.po_ods import csv_to_ods
 
 from mod.communicator import Communicator
 
@@ -127,7 +127,8 @@ class TestCommunicator(unittest.TestCase):
             with open(os.path.join(lang_path, self.po_filenames[1]), 'wb') as po_file:
                 po_file.write(PO_CONTENT_LOCAL[1] % lang)
 
-        self.com = Communicator(url=TESTS_URL)
+        self.com = Communicator(url=TESTS_URL, languages=self.languages, locale_root=self.locale_root,
+                                po_files_path=self.po_files_path, header=self.header)
         self.com.clear()
 
     def tearDown(self):
@@ -144,16 +145,16 @@ class TestCommunicator(unittest.TestCase):
         with open(temp_meta_path, 'wb') as csv_file:
             writer = csv.writer(csv_file)
             writer.writerows(CSV_META_GDOCS)
-            
+
         csv_to_ods(temp_trans_path, temp_meta_path, temp_ods_path)
 
         entry = self.com.gd_client.GetResourceById(self.com.key)
         media = gdata.data.MediaSource(file_path=temp_ods_path,
                                        content_type='application/x-vnd.oasis.opendocument.spreadsheet')
         self.com.gd_client.UpdateResource(entry, media=media, update_metadata=False)
-        
-        self.com.synchronize(self.languages, self.locale_root, self.po_files_path, self.header)
-        
+
+        self.com.synchronize()
+
         for lang in self.languages:
             lang_path = os.path.join(self.locale_root, lang, self.po_files_path)
 
