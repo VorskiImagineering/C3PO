@@ -83,24 +83,26 @@ def po_to_ods(languages, locale_root, po_files_path, temp_file_path):
 
     po_files = _get_all_po_filenames(locale_root, languages[0], po_files_path)
 
+    i = 0
     for po_filename in po_files:
         po_file_path = os.path.join(locale_root, languages[0], po_files_path, po_filename)
 
         po = polib.pofile(po_file_path)
-        for i, entry in enumerate(po):
+        for entry in po:
+            i += 1
             meta = dict(entry.__dict__)
             meta.pop('msgid', None)
             meta.pop('msgstr', None)
             meta.pop('tcomment', None)
 
             ods.content.getSheet(1)
-            ods.content.getCell(0, i+1).stringValue(po_filename).setCellColor(settings.ODD_COLUMN_BG_COLOR)
-            ods.content.getCell(1, i+1).stringValue(str(meta)).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
+            ods.content.getCell(0, i).stringValue(po_filename).setCellColor(settings.ODD_COLUMN_BG_COLOR)
+            ods.content.getCell(1, i).stringValue(str(meta)).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
 
             ods.content.getSheet(0)
-            ods.content.getCell(0, i+1).stringValue(entry.tcomment).setCellColor(settings.ODD_COLUMN_BG_COLOR)
-            ods.content.getCell(1, i+1).stringValue("'" + entry.msgid).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
-            ods.content.getCell(2, i+1).stringValue(entry.msgstr).setCellColor(settings.ODD_COLUMN_BG_COLOR)
+            ods.content.getCell(0, i).stringValue(entry.tcomment).setCellColor(settings.ODD_COLUMN_BG_COLOR)
+            ods.content.getCell(1, i).stringValue("'" + entry.msgid).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
+            ods.content.getCell(2, i).stringValue(entry.msgstr).setCellColor(settings.ODD_COLUMN_BG_COLOR)
 
         _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filename)
 
