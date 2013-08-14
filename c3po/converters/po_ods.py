@@ -47,9 +47,9 @@ def _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filenam
                 # start from 3 column, 1 row
                 ods.content.getCell(i+3, j+1).stringValue(entry.msgstr)
                 if i % 2 == 1:
-                    ods.content.getCell(j, i+1).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
+                    ods.content.getCell(i+3, j+1).setCellColor(settings.ODD_COLUMN_BG_COLOR)
                 else:
-                    ods.content.getCell(j, i+1).setCellColor(settings.ODD_COLUMN_BG_COLOR)
+                    ods.content.getCell(i+3, j+1).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
 
 
 def _write_row_into_ods(ods, sheet_no, row_no, row):

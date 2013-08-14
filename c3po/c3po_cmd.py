@@ -7,7 +7,7 @@ from mod.communicator import git_push, git_checkout
 from mod.initializer import ALLOWED_COMMANDS
 
 
-if __name__ == '__main__':
+def main():
     command = initializer.initialize()
 
     if command[0] == 'push':
@@ -17,3 +17,7 @@ if __name__ == '__main__':
     elif command[0] in ALLOWED_COMMANDS:
         com = communicator.Communicator()
         getattr(com, command[0])()
+
+
+if __name__ == '__main__':
+    main()
