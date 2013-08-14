@@ -175,17 +175,17 @@ class Communicator(object):
         try:
             entry = self._download_csv_from_gdocs(gdocs_trans_csv, gdocs_meta_csv)
         except PODocsError as e:
-            if 'Sheet 1 not found' in str(e):
+            if 'Sheet 1 not found' in str(e) or 'Conversion failed unexpectedly' in str(e):
                 self.upload()
             else:
                 raise PODocsError(e)
+        else:
+            self._merge_local_and_gdoc(entry, local_trans_csv, local_meta_csv, gdocs_trans_csv, gdocs_meta_csv)
 
-        self._merge_local_and_gdoc(entry, local_trans_csv, local_meta_csv, gdocs_trans_csv, gdocs_meta_csv)
-
-        try:
-            csv_to_po(local_trans_csv, local_meta_csv, self.locale_root, self.po_files_path, self.header)
-        except IOError as e:
-            raise PODocsError(e)
+            try:
+                csv_to_po(local_trans_csv, local_meta_csv, self.locale_root, self.po_files_path, self.header)
+            except IOError as e:
+                raise PODocsError(e)
 
         self._clear_temp()
 
