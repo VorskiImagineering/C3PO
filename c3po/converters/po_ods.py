@@ -33,7 +33,7 @@ def _prepare_ods_columns(ods, trans_title_row):
     ods.content.getColumn(0).setWidth(settings.NOTES_COLUMN_WIDTH)
 
 
-def _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filename):
+def _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filename, start_row):
     """
     Write translations from po files into ods one file.
     Assumes a dictionary structure <locale_root>/<lang>/<po_files_path>/<filename>.
@@ -45,11 +45,12 @@ def _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filenam
             po_file = polib.pofile(lang_po_path)
             for j, entry in enumerate(po_file):
                 # start from 3 column, 1 row
-                ods.content.getCell(i+3, j+1).stringValue(entry.msgstr)
+                row = j+start_row
+                ods.content.getCell(i+3, row).stringValue(entry.msgstr)
                 if i % 2 == 1:
-                    ods.content.getCell(i+3, j+1).setCellColor(settings.ODD_COLUMN_BG_COLOR)
+                    ods.content.getCell(i+3, row).setCellColor(settings.ODD_COLUMN_BG_COLOR)
                 else:
-                    ods.content.getCell(i+3, j+1).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
+                    ods.content.getCell(i+3, row).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
 
 
 def _write_row_into_ods(ods, sheet_no, row_no, row):
@@ -83,13 +84,14 @@ def po_to_ods(languages, locale_root, po_files_path, temp_file_path):
 
     po_files = _get_all_po_filenames(locale_root, languages[0], po_files_path)
 
-    i = 0
+    i = 1
     for po_filename in po_files:
         po_file_path = os.path.join(locale_root, languages[0], po_files_path, po_filename)
 
+        start_row = i
+
         po = polib.pofile(po_file_path)
         for entry in po:
-            i += 1
             meta = dict(entry.__dict__)
             meta.pop('msgid', None)
             meta.pop('msgstr', None)
@@ -104,7 +106,9 @@ def po_to_ods(languages, locale_root, po_files_path, temp_file_path):
             ods.content.getCell(1, i).stringValue("'" + entry.msgid).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
             ods.content.getCell(2, i).stringValue(entry.msgstr).setCellColor(settings.ODD_COLUMN_BG_COLOR)
 
-        _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filename)
+            i += 1
+
+        _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filename, start_row)
 
     ods.save(temp_file_path)
 
