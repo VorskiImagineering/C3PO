@@ -14,6 +14,7 @@ import gdata.docs.service
 from gdata.client import RequestError
 
 from c3po.conf import settings
+from c3po.converters.json_type import json_to_ods, csv_to_json
 from c3po.converters.po_csv import csv_to_po, po_to_csv_merge
 from c3po.converters.po_ods import po_to_ods, csv_to_ods
 
@@ -29,7 +30,7 @@ class PODocsError(Exception):
     pass
 
 
-class Communicator(object):
+class POCommunicator(object):
     """
     Client for communicating with GDocs. Providing log in on object creation and methods for synchronizing,
     uploading, downloading files and clearing GDoc.
@@ -199,7 +200,7 @@ class Communicator(object):
         self._download_csv_from_gdocs(trans_csv_path, meta_csv_path)
 
         try:
-            csv_to_po(trans_csv_path, meta_csv_path, self.locale_root, self.po_files_path, header=self.header)
+            csv_to_json(trans_csv_path, self.locale_root)
         except IOError as e:
             raise PODocsError(e)
 
@@ -235,6 +236,40 @@ class Communicator(object):
         self._upload_file_to_gdoc(empty_file_path, content_type='text/csv')
 
         os.remove(empty_file_path)
+
+
+class JSONCommunicator(POCommunicator):
+
+    def upload(self):
+        """
+        Upload all po files to GDocs ignoring conflicts. This method looks for all msgids in json files and sends them
+        as ods to GDocs Spreadsheet.
+        """
+        local_ods_path = os.path.join(self.temp_path, LOCAL_ODS)
+        try:
+            json_to_ods(self.languages, self.locale_root, local_ods_path)
+        except (IOError, OSError) as e:
+            raise PODocsError(e)
+
+        self._upload_file_to_gdoc(local_ods_path)
+
+        self._clear_temp()
+
+    def download(self):
+        """
+        Download csv files from GDocs and convert them into json files structure.
+        """
+        trans_csv_path = os.path.realpath(os.path.join(self.temp_path, GDOCS_TRANS_CSV))
+        meta_csv_path = os.path.realpath(os.path.join(self.temp_path, GDOCS_META_CSV))
+
+        self._download_csv_from_gdocs(trans_csv_path, meta_csv_path)
+
+        try:
+            csv_to_json(trans_csv_path, self.locale_root)
+        except IOError as e:
+            raise PODocsError(e)
+
+        self._clear_temp()
 
 
 def git_push(git_message=None, git_repository=None, git_branch=None, locale_root=None):
@@ -296,3 +331,11 @@ def git_checkout(git_branch=None, locale_root=None):
     stdout, stderr = proc.communicate()
 
     return stdout, stderr
+
+
+if settings.SOURCE_TYPE == 'PO':
+    Communicator = POCommunicator
+elif settings.SOURCE_TYPE == 'JSON':
+    Communicator = JSONCommunicator
+else:
+    raise Exception('Wrong settings.SOURCE_TYPE')

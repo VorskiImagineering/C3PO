@@ -6,18 +6,18 @@ import os
 ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 
 # List of languages to read from and write po file to
-LANGUAGES = ['en', 'pl', 'jp']
+LANGUAGES = ['en_EN', 'pl_PL', 'jp_JP']
 
 # GDocs authentication information
 EMAIL = 'ttestt123321@gmail.com'
 PASSWORD = 'zxcasdqwe.'
-URL = 'https://docs.google.com/spreadsheet/ccc?key=0AnVOHClWGpLZdFdNVVJJLUZkbkh1bGFOWUZqRnYxbGc#gid=0'
+URL = 'https://docs.google.com/spreadsheet/ccc?key=0AnVOHClWGpLZdGxMQklHNXdtb0c1QzBaRXBXaFBNN2c#gid=0'
 
 # Header which will be attached on top of every po file
 HEADER = '# translated with c3po\n'
 
 # Path to locale folder with language directories
-LOCALE_ROOT = os.path.join(ROOT_DIR, 'conf', 'locale')
+LOCALE_ROOT = os.path.join(ROOT_DIR, 'conf', 'locale', 'json_test')
 # Path from lang folder to po file
 PO_FILES_PATH = 'LC_MESSAGES'
 # Temporary directory where csv file and temp lines.txt will be saved
@@ -46,4 +46,6 @@ MSGSTR_COLUMN_WIDTH = '2.5in'
 NOTES_COLUMN_WIDTH = '1.5in'
 
 # source files type; available: PO, JSON
-SOURCE_TYPE = 'PO'
+SOURCE_TYPE = 'JSON'
+SOURCE_FILE_PREFIX = 'lang_'
+SOURCE_FILE_SUFFIX = '.js'

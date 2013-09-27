@@ -35,3 +35,6 @@ nosetests.xml
 .pydevproject
 *.idea/
 *.csv
+
+c3po/htmlcov/*
+c3po/conf/locale/*

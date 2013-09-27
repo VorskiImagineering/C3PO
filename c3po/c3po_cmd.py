@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 from mod import initializer
+# need to prepare settings before importing anything
+command = initializer.initialize()
 from mod import communicator
 from mod.communicator import git_push, git_checkout
 from mod.initializer import ALLOWED_COMMANDS
 
 
 def main():
-    command = initializer.initialize()
-
     if command[0] == 'push':
         git_push(command[1])
     elif command[0] == 'checkout':
