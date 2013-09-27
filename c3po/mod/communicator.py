@@ -14,7 +14,7 @@ import gdata.docs.service
 from gdata.client import RequestError
 
 from c3po.conf import settings
-from c3po.converters.json_type import json_to_ods, csv_to_json
+from c3po.converters.json_type import json_to_ods, csv_to_json, json_to_csv_merge
 from c3po.converters.po_csv import csv_to_po, po_to_csv_merge
 from c3po.converters.po_ods import po_to_ods, csv_to_ods
 
@@ -271,6 +271,19 @@ class JSONCommunicator(POCommunicator):
 
         self._clear_temp()
 
+    def synchronize(self):
+        """
+        Synchronize local json files with translations on GDocs Spreadsheet.
+        Downloads two csv files, merges them and converts into json files structure.
+        If new msgids appeared in po files, this method creates new ods with appended content, and sends it to GDocs.
+        """
+        trans_csv_path = os.path.realpath(os.path.join(self.temp_path, GDOCS_TRANS_CSV))
+        meta_csv_path = os.path.realpath(os.path.join(self.temp_path, GDOCS_META_CSV))
+        self._download_csv_from_gdocs(trans_csv_path, meta_csv_path)
+        if json_to_csv_merge(self.languages, self.locale_root, trans_csv_path):
+            self.upload()
+        self._clear_temp()
+
 
 def git_push(git_message=None, git_repository=None, git_branch=None, locale_root=None):
     """
@@ -333,9 +346,13 @@ def git_checkout(git_branch=None, locale_root=None):
     return stdout, stderr
 
 
-if settings.SOURCE_TYPE == 'PO':
-    Communicator = POCommunicator
-elif settings.SOURCE_TYPE == 'JSON':
-    Communicator = JSONCommunicator
-else:
-    raise Exception('Wrong settings.SOURCE_TYPE')
+def get_communicator(source_type):
+    if source_type == 'PO':
+        return POCommunicator
+    elif source_type == 'JSON':
+        return JSONCommunicator
+    else:
+        raise Exception('Wrong settings.SOURCE_TYPE')
+
+
+Communicator = get_communicator(settings.SOURCE_TYPE)

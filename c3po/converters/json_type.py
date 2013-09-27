@@ -39,8 +39,8 @@ def json_to_ods(languages, locale_root, temp_file_path):
 
     i = 1
     for msgid, msgstr in trans_dict.values()[0].items():
-        ods.content.getCell(1, i).stringValue(msgid).setCellColor(settings.ODD_COLUMN_BG_COLOR)
-        ods.content.getCell(2, i).stringValue(msgstr).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
+        ods.content.getCell(1, i).stringValue(msgid).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
+        ods.content.getCell(2, i).stringValue(msgstr).setCellColor(settings.ODD_COLUMN_BG_COLOR)
 
         for j, langs_trans in enumerate(trans_dict.values()[1:]):
             bg_color = j % 2 and settings.ODD_COLUMN_BG_COLOR or settings.EVEN_COLUMN_BG_COLOR
@@ -80,3 +80,37 @@ def csv_to_json(trans_csv_path, locale_root):
             json.dump(lang_dict, fp, indent=4)
 
     trans_reader.close()
+
+
+def json_to_csv_merge(languages, locale_root, gdocs_trans_csv):
+    """
+    Converts po file to csv GDocs spreadsheet readable format. Merges them if some msgid aren't in the spreadsheet.
+    """
+
+    trans_dict = {}
+
+    for lang in languages:
+        with open(_json_file_path(locale_root, lang)) as fp:
+            trans_dict[lang] = json.load(fp)
+
+    trans_reader = UnicodeReader(gdocs_trans_csv)
+
+    try:
+        trans_reader.next()
+    except StopIteration:
+        # empty file
+        return
+
+    for trans_line in trans_reader:
+        msgid = trans_line[1]
+        for i, trans in enumerate(trans_line[2:]):
+            trans_dict[languages[i]][msgid] = trans
+
+    shutil.rmtree(locale_root)
+    os.makedirs(locale_root)
+
+    for lang, lang_dict in trans_dict.items():
+        with open(_json_file_path(locale_root, lang), 'w') as fp:
+            json.dump(lang_dict, fp, indent=4)
+
+    return True
