@@ -26,7 +26,8 @@ class UnicodeReader(object):
     which is encoded in the given encoding.
     """
 
-    def __init__(self, file_path, dialect=csv.excel, encoding="utf-8", **kwargs):
+    def __init__(self, file_path, dialect=csv.excel,
+                 encoding="utf-8", **kwargs):
         self.file = open(file_path, 'rb')
         recorder = UTF8Recoder(self.file, encoding)
         self.reader = csv.reader(recorder, dialect=dialect, **kwargs)
@@ -48,10 +49,11 @@ class UnicodeWriter(object):
     which is encoded in the given encoding.
     """
 
-    def __init__(self, file_path, dialect=csv.excel, encoding="utf-8", **kwds):
+    def __init__(self, file_path, dialect=csv.excel,
+                 encoding="utf-8", **kwargs):
         # Redirect output to a queue
         self.queue = cStringIO.StringIO()
-        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
+        self.writer = csv.writer(self.queue, dialect=dialect, **kwargs)
         self.stream = open(file_path, 'wb')
         self.encoder = codecs.getincrementalencoder(encoding)()
 

@@ -122,13 +122,17 @@ class TestCommunicator(unittest.TestCase):
             lang_path = os.path.join(self.locale_root, lang, self.po_files_path)
             os.makedirs(lang_path)
 
-            with open(os.path.join(lang_path, self.po_filenames[0]), 'wb') as po_file:
+            with open(os.path.join(
+                    lang_path, self.po_filenames[0]), 'wb') as po_file:
                 po_file.write(PO_CONTENT_LOCAL[0] % lang)
-            with open(os.path.join(lang_path, self.po_filenames[1]), 'wb') as po_file:
+            with open(os.path.join(
+                    lang_path, self.po_filenames[1]), 'wb') as po_file:
                 po_file.write(PO_CONTENT_LOCAL[1] % lang)
 
-        self.com = Communicator(url=TESTS_URL, languages=self.languages, locale_root=self.locale_root,
-                                po_files_path=self.po_files_path, header=self.header)
+        self.com = Communicator(url=TESTS_URL, languages=self.languages,
+                                locale_root=self.locale_root,
+                                po_files_path=self.po_files_path,
+                                header=self.header)
         self.com.clear()
 
     def tearDown(self):
@@ -149,19 +153,24 @@ class TestCommunicator(unittest.TestCase):
         csv_to_ods(temp_trans_path, temp_meta_path, temp_ods_path)
 
         entry = self.com.gd_client.GetResourceById(self.com.key)
-        media = gdata.data.MediaSource(file_path=temp_ods_path,
-                                       content_type='application/x-vnd.oasis.opendocument.spreadsheet')
-        self.com.gd_client.UpdateResource(entry, media=media, update_metadata=False)
+        media = gdata.data.MediaSource(
+            file_path=temp_ods_path,
+            content_type='application/x-vnd.oasis.opendocument.spreadsheet')
+        self.com.gd_client.UpdateResource(entry, media=media,
+                                          update_metadata=False)
 
         self.com.synchronize()
 
         for lang in self.languages:
-            lang_path = os.path.join(self.locale_root, lang, self.po_files_path)
+            lang_path = os.path.join(self.locale_root, lang,
+                                     self.po_files_path)
 
-            with open(os.path.join(lang_path, self.po_filenames[0]), 'rb') as po_file:
+            with open(os.path.join(
+                    lang_path, self.po_filenames[0]), 'rb') as po_file:
                 self.assertEqual(po_file.read(), PO_CONTENT_MERGED[0] % lang)
 
-            with open(os.path.join(lang_path, self.po_filenames[1]), 'rb') as po_file:
+            with open(os.path.join(
+                    lang_path, self.po_filenames[1]), 'rb') as po_file:
                 self.assertEqual(po_file.read(), PO_CONTENT_MERGED[1] % lang)
 
 

@@ -31,8 +31,9 @@ class PODocsError(Exception):
 
 class Communicator(object):
     """
-    Client for communicating with GDocs. Providing log in on object creation and methods for synchronizing,
-    uploading, downloading files and clearing GDoc.
+    Client for communicating with GDocs. Providing log in on object
+    creation and methods for synchronizing, uploading, downloading files
+    and clearing GDoc.
 
     Needs to specify:
         locale_root, po_files_path
@@ -53,8 +54,9 @@ class Communicator(object):
     po_files_path = None
     header = None
 
-    def __init__(self, email=None, password=None, url=None, source=None, temp_path=None,
-                 languages=None, locale_root=None, po_files_path=None, header=None):
+    def __init__(self, email=None, password=None, url=None, source=None,
+                 temp_path=None, languages=None, locale_root=None,
+                 po_files_path=None, header=None):
         """
         Initialize object with all necessary client information and log in
         :param email: user gmail account address
@@ -63,9 +65,11 @@ class Communicator(object):
         :param temp_path: path where temporary files will be saved
         :param source: source information to show on web
         :param languages: list of languages
-        :param locale_root: path to locale root folder containing directories with languages
+        :param locale_root: path to locale root folder containing directories
+                            with languages
         :param po_files_path: path from lang directory to po file
-        :param header: header which will be put on top of every po file when downloading
+        :param header: header which will be put on top of every po file
+                       when downloading
         """
         construct_vars = ('email', 'password', 'url', 'source', 'temp_path',
                           'languages', 'locale_root', 'po_files_path', 'header')
@@ -110,9 +114,11 @@ class Communicator(object):
 
     def _clear_temp(self):
         """
-        Clear temp directory from created csv and ods files during communicator operations.
+        Clear temp directory from created csv and ods files during
+        communicator operations.
         """
-        temp_files = [LOCAL_ODS, GDOCS_TRANS_CSV, GDOCS_META_CSV, LOCAL_TRANS_CSV, LOCAL_META_CSV]
+        temp_files = [LOCAL_ODS, GDOCS_TRANS_CSV, GDOCS_META_CSV,
+                      LOCAL_TRANS_CSV, LOCAL_META_CSV]
         for temp_file in temp_files:
             file_path = os.path.join(self.temp_path, temp_file)
             if os.path.exists(file_path):
@@ -122,50 +128,68 @@ class Communicator(object):
         """
         Download csv from GDoc.
         :return: returns resource if worksheets are present
-        :except: raises PODocsError with info if communication with GDocs lead to any errors
+        :except: raises PODocsError with info if communication with GDocs
+        lead to any errors
         """
         try:
             entry = self.gd_client.GetResourceById(self.key)
-            self.gd_client.DownloadResource(entry, trans_csv_path, extra_params={'gid': 0, 'exportFormat': 'csv'})
-            self.gd_client.DownloadResource(entry, meta_csv_path, extra_params={'gid': 1, 'exportFormat': 'csv'})
+            self.gd_client.DownloadResource(
+                entry, trans_csv_path,
+                extra_params={'gid': 0, 'exportFormat': 'csv'})
+            self.gd_client.DownloadResource(
+                entry, meta_csv_path,
+                extra_params={'gid': 1, 'exportFormat': 'csv'})
         except (RequestError, IOError) as e:
             raise PODocsError(e)
         return entry
 
-    def _upload_file_to_gdoc(self, file_path, content_type='application/x-vnd.oasis.opendocument.spreadsheet'):
+    def _upload_file_to_gdoc(
+            self, file_path,
+            content_type='application/x-vnd.oasis.opendocument.spreadsheet'):
         """
-        Uploads file to GDocs spreadsheet. Content type can be provided as argument, default is ods.
+        Uploads file to GDocs spreadsheet.
+        Content type can be provided as argument, default is ods.
         """
         try:
             entry = self.gd_client.GetResourceById(self.key)
-            media = gdata.data.MediaSource(file_path=file_path, content_type=content_type)
-            self.gd_client.UpdateResource(entry, media=media, update_metadata=True)
+            media = gdata.data.MediaSource(file_path=file_path,
+                                           content_type=content_type)
+            self.gd_client.UpdateResource(entry, media=media,
+                                          update_metadata=True)
         except (RequestError, IOError) as e:
             raise PODocsError(e)
 
-    def _merge_local_and_gdoc(self, entry, local_trans_csv, local_meta_csv, gdocs_trans_csv, gdocs_meta_csv):
+    def _merge_local_and_gdoc(self, entry, local_trans_csv, local_meta_csv,
+                              gdocs_trans_csv, gdocs_meta_csv):
         """
         Download csv from GDoc.
         :return: returns resource if worksheets are present
-        :except: raises PODocsError with info if communication with GDocs lead to any errors
+        :except: raises PODocsError with info if communication
+                 with GDocs lead to any errors
         """
         try:
-            new_translations = po_to_csv_merge(self.languages, self.locale_root, self.po_files_path,
-                                               local_trans_csv, local_meta_csv, gdocs_trans_csv, gdocs_meta_csv)
+            new_translations = po_to_csv_merge(
+                self.languages, self.locale_root, self.po_files_path,
+                local_trans_csv, local_meta_csv,
+                gdocs_trans_csv, gdocs_meta_csv)
             if new_translations:
                 local_ods = os.path.join(self.temp_path, LOCAL_ODS)
                 csv_to_ods(local_trans_csv, local_meta_csv, local_ods)
-                media = gdata.data.MediaSource(file_path=local_ods,
-                                               content_type='application/x-vnd.oasis.opendocument.spreadsheet')
-                self.gd_client.UpdateResource(entry, media=media, update_metadata=True)
+                media = gdata.data.MediaSource(
+                    file_path=local_ods,
+                    content_type=
+                    'application/x-vnd.oasis.opendocument.spreadsheet')
+                self.gd_client.UpdateResource(entry, media=media,
+                                              update_metadata=True)
         except (IOError, OSError, RequestError) as e:
             raise PODocsError(e)
 
     def synchronize(self):
         """
         Synchronize local po files with translations on GDocs Spreadsheet.
-        Downloads two csv files, merges them and converts into po files structure.
-        If new msgids appeared in po files, this method creates new ods with appended content, and sends it to GDocs.
+        Downloads two csv files, merges them and converts into
+        po files structure. If new msgids appeared in po files, this method
+        creates new ods with appended content, and sends it to GDocs.
         """
         gdocs_trans_csv = os.path.join(self.temp_path, GDOCS_TRANS_CSV)
         gdocs_meta_csv = os.path.join(self.temp_path, GDOCS_META_CSV)
@@ -173,17 +197,21 @@ class Communicator(object):
         local_meta_csv = os.path.join(self.temp_path, LOCAL_META_CSV)
 
         try:
-            entry = self._download_csv_from_gdocs(gdocs_trans_csv, gdocs_meta_csv)
+            entry = self._download_csv_from_gdocs(gdocs_trans_csv,
+                                                  gdocs_meta_csv)
         except PODocsError as e:
             if 'Sheet 1 not found' in str(e):
                 self.upload()
+                return
             else:
                 raise PODocsError(e)
 
-        self._merge_local_and_gdoc(entry, local_trans_csv, local_meta_csv, gdocs_trans_csv, gdocs_meta_csv)
+        self._merge_local_and_gdoc(entry, local_trans_csv, local_meta_csv,
+                                   gdocs_trans_csv, gdocs_meta_csv)
 
         try:
-            csv_to_po(local_trans_csv, local_meta_csv, self.locale_root, self.po_files_path, self.header)
+            csv_to_po(local_trans_csv, local_meta_csv, self.locale_root,
+                      self.po_files_path, self.header)
         except IOError as e:
             raise PODocsError(e)
 
@@ -193,13 +221,16 @@ class Communicator(object):
         """
         Download csv files from GDocs and convert them into po files structure.
         """
-        trans_csv_path = os.path.realpath(os.path.join(self.temp_path, GDOCS_TRANS_CSV))
-        meta_csv_path = os.path.realpath(os.path.join(self.temp_path, GDOCS_META_CSV))
+        trans_csv_path = os.path.realpath(os.path.join(self.temp_path,
+                                                       GDOCS_TRANS_CSV))
+        meta_csv_path = os.path.realpath(os.path.join(self.temp_path,
+                                                      GDOCS_META_CSV))
 
         self._download_csv_from_gdocs(trans_csv_path, meta_csv_path)
 
         try:
-            csv_to_po(trans_csv_path, meta_csv_path, self.locale_root, self.po_files_path, header=self.header)
+            csv_to_po(trans_csv_path, meta_csv_path, self.locale_root,
+                      self.po_files_path, header=self.header)
         except IOError as e:
             raise PODocsError(e)
 
@@ -207,12 +238,13 @@ class Communicator(object):
 
     def upload(self):
         """
-        Upload all po files to GDocs ignoring conflicts. This method looks for all msgids in po_files and sends them
-        as ods to GDocs Spreadsheet.
+        Upload all po files to GDocs ignoring conflicts. This method looks
+        for all msgids in po_files and sends them as ods to GDocs Spreadsheet.
         """
         local_ods_path = os.path.join(self.temp_path, LOCAL_ODS)
         try:
-            po_to_ods(self.languages, self.locale_root, self.po_files_path, local_ods_path)
+            po_to_ods(self.languages, self.locale_root,
+                      self.po_files_path, local_ods_path)
         except (IOError, OSError) as e:
             raise PODocsError(e)
 
@@ -237,13 +269,15 @@ class Communicator(object):
         os.remove(empty_file_path)
 
 
-def git_push(git_message=None, git_repository=None, git_branch=None, locale_root=None):
+def git_push(git_message=None, git_repository=None,
+             git_branch=None, locale_root=None):
     """
     Pushes specified directory to git remote
     :param git_message: commit message
     :param git_repository: repository address
     :param git_branch: git branch
-    :param locale_root: path to locale root folder containing directories with languages
+    :param locale_root: path to locale root folder containing directories
+                        with languages
     :return: tuple stdout, stderr of completed command
     """
     if git_message is None:
@@ -267,7 +301,8 @@ def git_push(git_message=None, git_repository=None, git_branch=None, locale_root
         subprocess.check_call(['git', 'ls-remote', git_repository])
     except subprocess.CalledProcessError:
         try:
-            subprocess.check_call(['git', 'remote', 'add', 'po_translator', git_repository])
+            subprocess.check_call(['git', 'remote', 'add', 'po_translator',
+                                   git_repository])
         except subprocess.CalledProcessError as e:
             raise PODocsError(e)
 
@@ -292,7 +327,8 @@ def git_checkout(git_branch=None, locale_root=None):
     if locale_root is None:
         locale_root = settings.LOCALE_ROOT
 
-    proc = Popen('git checkout ' + git_branch + ' -- ' + locale_root, shell=True, stdout=PIPE, stderr=PIPE)
+    proc = Popen('git checkout ' + git_branch + ' -- ' + locale_root,
+                 shell=True, stdout=PIPE, stderr=PIPE)
     stdout, stderr = proc.communicate()
 
     return stdout, stderr

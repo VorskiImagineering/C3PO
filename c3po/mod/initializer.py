@@ -9,13 +9,15 @@ import sys
 from c3po.conf import settings
 
 
-ALLOWED_COMMANDS = ('synchronize', 'download', 'upload', 'clear', 'checkout', 'push')
+ALLOWED_COMMANDS = ('synchronize', 'download', 'upload',
+                    'clear', 'checkout', 'push')
 
 
 def usage():
     print('Usage: ./c3po.py <command> <options>\n\n'
           'Commands are:\n'
-          'synchronize\tdownloads GDocs and synchronizes it\'s content with local po files\n'
+          'synchronize\tdownloads GDocs and synchronizes it\'s '
+          'content with local po files\n'
           'download\tdownloads GDoc and converts it to po files\n'
           'upload\t\tuploads local po files to GDocs overwriting it\n'
           'clear\t\tclears GDoc file\n'
@@ -76,7 +78,8 @@ def _set_settings_file(settings, params):
         else:
             if not os.path.isdir(os.path.dirname(user_settings_path)):
                 os.makedirs(os.path.dirname(user_settings_path))
-            shutil.copy(os.path.join(os.path.dirname(__file__), '..', 'conf', 'settings_default.py'),
+            shutil.copy(os.path.join(os.path.dirname(__file__),
+                                     '..', 'conf', 'settings_default.py'),
                         user_settings_path)
             settings.set_config(user_settings_path, params)
 
@@ -85,7 +88,8 @@ def _set_settings_file(settings, params):
 
 def initialize():
     """
-    Function to initialize settings from command line and/or custom settings file
+    Function to initialize settings from command line
+    and/or custom settings file
     :return: Returns str with operation type
     """
     if len(sys.argv) == 1:
@@ -96,8 +100,9 @@ def initialize():
 
     try:
         opts, args = getopt.getopt(sys.argv[2:], 'h:e:p:u:l:P:s:m:',
-                                   ['help', 'email=', 'password=', 'url=', 'locale=',
-                                    'po-path=', 'settings=', 'message='])
+                                   ['help', 'email=', 'password=', 'url=',
+                                    'locale=', 'po-path=',
+                                    'settings=', 'message='])
     except getopt.GetoptError:
         usage()
         sys.exit()
