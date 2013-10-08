@@ -7,6 +7,7 @@ import os
 from itertools import izip
 
 import polib
+import re
 
 from c3po.conf import settings
 from c3po.converters.unicode import UnicodeWriter, UnicodeReader
@@ -78,12 +79,20 @@ def _write_entries(po_files, languages, msgid, msgstrs, metadata, comment):
     Write msgstr for every language with all needed metadata and comment.
     Metadata are parser from string into dict, so read them only from gdocs.
     """
+    start = re.compile(r'^[\s]+')
+    end = re.compile(r'[\s]+$')
     for i, lang in enumerate(languages):
         meta = ast.literal_eval(metadata)
         entry = polib.POEntry(**meta)
         entry.tcomment = comment
         entry.msgid = msgid
-        entry.msgstr = unicode(msgstrs[i])
+        if msgstrs[i]:
+            start_ws = start.search(msgid)
+            end_ws = end.search(msgid)
+            entry.msgstr = str(start_ws.group() if start_ws else '') + \
+                unicode(msgstrs[i].strip()) + str(end_ws.group() if end_ws else '')
+        else:
+            entry.msgstr = ''
         po_files[lang].append(entry)
         po_files[lang].save()
 
@@ -118,7 +127,7 @@ def _write_new_messages(po_file_path, trans_writer, meta_writer,
 
     new_trans = 0
     for entry in po_file:
-        if entry.msgid.rstrip() not in msgids:
+        if entry.msgid not in msgids:
             new_trans += 1
             trans = [entry.tcomment, entry.msgid, entry.msgstr]
             trans += [''] * languages_num
@@ -165,7 +174,7 @@ def po_to_csv_merge(languages, locale_root, po_files_path, local_trans_csv,
         trans_title, meta_title, local_trans_csv, local_meta_csv)
 
     for trans_row, meta_row in izip(trans_reader, meta_reader):
-        msgids.append(trans_row[1].rstrip())
+        msgids.append(trans_row[1])
         trans_writer.writerow(trans_row)
         meta_writer.writerow(meta_row)
 
@@ -219,8 +228,8 @@ def csv_to_po(trans_csv_path, meta_csv_path, locale_root,
     for trans_row, meta_row in izip(trans_reader, meta_reader):
         filename = meta_row[0].rstrip()
         metadata = meta_row[1].rstrip()
-        comment = trans_row[0].rstrip()
-        msgid = trans_row[1].rstrip()
+        comment = trans_row[0]
+        msgid = trans_row[1]
 
         if filename not in po_files:
             _prepare_polib_files(po_files, filename, trans_languages,
