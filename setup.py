@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='C3PO',
-    version='0.2.0',
+    version='0.2.1',
     packages=['c3po', 'c3po.conf', 'c3po.mod', 'c3po.converters'],
     url='https://github.com/VorskiImagineering/C3PO',
     license='MIT',

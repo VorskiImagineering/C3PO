@@ -11,6 +11,10 @@ from c3po.converters.po_csv import _get_all_po_filenames
 from c3po.converters.unicode import UnicodeReader
 
 
+def _escape_apostrophe(entry):
+    return ("'" if entry.startswith("'") else "") + entry
+
+
 def _prepare_ods_columns(ods, trans_title_row):
     """
     Prepare columns in new ods file, create new sheet for metadata, set columns color and width.
@@ -46,7 +50,7 @@ def _write_trans_into_ods(ods, languages, locale_root, po_files_path, po_filenam
             for j, entry in enumerate(po_file):
                 # start from 3 column, 1 row
                 row = j+start_row
-                ods.content.getCell(i+3, row).stringValue(entry.msgstr)
+                ods.content.getCell(i+3, row).stringValue(_escape_apostrophe(entry.msgstr))
                 if i % 2 == 1:
                     ods.content.getCell(i+3, row).setCellColor(settings.ODD_COLUMN_BG_COLOR)
                 else:
@@ -60,7 +64,7 @@ def _write_row_into_ods(ods, sheet_no, row_no, row):
     ods.content.getSheet(sheet_no)
     for j, col in enumerate(row):
         cell = ods.content.getCell(j, row_no+1)
-        cell.stringValue(col)
+        cell.stringValue(_escape_apostrophe(col))
         if j % 2 == 1:
             cell.setCellColor(settings.EVEN_COLUMN_BG_COLOR)
         else:
@@ -102,9 +106,9 @@ def po_to_ods(languages, locale_root, po_files_path, temp_file_path):
             ods.content.getCell(1, i).stringValue(str(meta)).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
 
             ods.content.getSheet(0)
-            ods.content.getCell(0, i).stringValue(entry.tcomment).setCellColor(settings.ODD_COLUMN_BG_COLOR)
-            ods.content.getCell(1, i).stringValue("'" + entry.msgid).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
-            ods.content.getCell(2, i).stringValue(entry.msgstr).setCellColor(settings.ODD_COLUMN_BG_COLOR)
+            ods.content.getCell(0, i).stringValue(_escape_apostrophe(entry.tcomment)).setCellColor(settings.ODD_COLUMN_BG_COLOR)
+            ods.content.getCell(1, i).stringValue(_escape_apostrophe(entry.msgid)).setCellColor(settings.EVEN_COLUMN_BG_COLOR)
+            ods.content.getCell(2, i).stringValue(_escape_apostrophe(entry.msgstr)).setCellColor(settings.ODD_COLUMN_BG_COLOR)
 
             i += 1
 

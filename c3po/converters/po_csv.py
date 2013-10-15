@@ -105,7 +105,7 @@ def _write_header(po_path, lang, header):
     po_file.close()
 
 
-def _write_new_messages(po_file_path, trans_writer, meta_writer, msgids, languages_num):
+def _write_new_messages(po_file_path, trans_writer, meta_writer, msgids, msgstrs, languages):
     """
     Write new msgids which appeared in po files with empty msgstrs values and metadata.
     Look for all new msgids which are diffed with msgids list provided as an argument.
@@ -118,7 +118,8 @@ def _write_new_messages(po_file_path, trans_writer, meta_writer, msgids, languag
         if entry.msgid not in msgids:
             new_trans += 1
             trans = [entry.tcomment, entry.msgid, entry.msgstr]
-            trans += [''] * languages_num
+            for lang in languages[1:]:
+                trans.append(msgstrs[lang][entry.msgid])
 
             meta = dict(entry.__dict__)
             meta.pop('msgid', None)
@@ -129,6 +130,22 @@ def _write_new_messages(po_file_path, trans_writer, meta_writer, msgids, languag
             meta_writer.writerow([po_filename, str(meta)])
 
     return new_trans
+
+
+def _get_new_msgstrs(po_file_path, msgids):
+    """
+    Write new msgids which appeared in po files with empty msgstrs values and metadata.
+    Look for all new msgids which are diffed with msgids list provided as an argument.
+    """
+    po_file = polib.pofile(po_file_path)
+
+    msgstrs = {}
+
+    for entry in po_file:
+        if entry.msgid not in msgids:
+            msgstrs[entry.msgid] = entry.msgstr
+
+    return msgstrs
 
 
 def po_to_csv_merge(languages, locale_root, po_files_path,
@@ -169,10 +186,15 @@ def po_to_csv_merge(languages, locale_root, po_files_path,
 
     new_trans = False
     for po_filename in po_files:
-        po_file_path = os.path.join(locale_root, languages[0], po_files_path, po_filename)
-        ret = _write_new_messages(po_file_path, trans_writer, meta_writer, msgids, len(languages)-1)
-        if ret > 0:
+        new_msgstrs = {}
+        for lang in languages[1:]:
+            po_file_path = os.path.join(locale_root, lang, po_files_path, po_filename)
+            new_msgstrs[lang] = _get_new_msgstrs(po_file_path, msgids)
+
+        if len(new_msgstrs[languages[1]].keys()) > 0:
             new_trans = True
+            po_file_path = os.path.join(locale_root, languages[0], po_files_path, po_filename)
+            _write_new_messages(po_file_path, trans_writer, meta_writer, msgids, new_msgstrs, languages)
 
     trans_writer.close()
     meta_writer.close()
