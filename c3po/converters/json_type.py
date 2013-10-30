@@ -99,7 +99,7 @@ def json_to_csv_merge(languages, locale_root, gdocs_trans_csv):
         trans_reader.next()
     except StopIteration:
         # empty file
-        return
+        pass
 
     for trans_line in trans_reader:
         msgid = trans_line[1]
