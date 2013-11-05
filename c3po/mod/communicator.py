@@ -200,7 +200,7 @@ class POCommunicator(object):
         self._download_csv_from_gdocs(trans_csv_path, meta_csv_path)
 
         try:
-            csv_to_json(trans_csv_path, self.locale_root)
+            csv_to_po(trans_csv_path, meta_csv_path, self.locale_root, self.po_files_path, header=self.header)
         except IOError as e:
             raise PODocsError(e)
 

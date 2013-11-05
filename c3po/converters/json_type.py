@@ -3,8 +3,9 @@
 #vim: set ts=4 sw=4 et fdm=marker : */
 import json
 import os
-from odslib import ODS
 import shutil
+from odslib import ODS
+from collections import OrderedDict
 from c3po.conf import settings
 from c3po.converters.po_ods import _prepare_ods_columns
 from c3po.converters.unicode import UnicodeReader
@@ -31,7 +32,7 @@ def json_to_ods(languages, locale_root, temp_file_path):
     ods.content.getSheet(0)
     _prepare_ods_columns(ods, title_row)
 
-    trans_dict = {}
+    trans_dict = OrderedDict()
 
     for lang in languages:
         with open(_json_file_path(locale_root, lang)) as fp:
@@ -105,9 +106,6 @@ def json_to_csv_merge(languages, locale_root, gdocs_trans_csv):
         msgid = trans_line[1]
         for i, trans in enumerate(trans_line[2:]):
             trans_dict[languages[i]][msgid] = trans
-
-    shutil.rmtree(locale_root)
-    os.makedirs(locale_root)
 
     for lang, lang_dict in trans_dict.items():
         with open(_json_file_path(locale_root, lang), 'w') as fp:
