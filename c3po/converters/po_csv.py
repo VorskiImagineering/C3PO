@@ -86,6 +86,7 @@ def _write_entries(po_files, languages, msgid, msgstrs, metadata, comment):
         entry = polib.POEntry(**meta)
         entry.tcomment = comment
         entry.msgid = msgid
+        # TODO: If translation not in lang, msgstr should be empty
         if msgstrs[i]:
             start_ws = start.search(msgid)
             end_ws = end.search(msgid)
@@ -95,7 +96,6 @@ def _write_entries(po_files, languages, msgid, msgstrs, metadata, comment):
         else:
             entry.msgstr = ''
         po_files[lang].append(entry)
-        po_files[lang].save()
 
 
 def _write_header(po_path, lang, header):
@@ -130,9 +130,9 @@ def _write_new_messages(po_file_path, trans_writer, meta_writer,
     for entry in po_file:
         if entry.msgid not in msgids:
             new_trans += 1
-            trans = [entry.tcomment, entry.msgid, entry.msgstr]
+            trans = [po_filename, entry.tcomment, entry.msgid, entry.msgstr]
             for lang in languages[1:]:
-                trans.append(msgstrs[lang][entry.msgid])
+                trans.append(msgstrs[lang].get(entry.msgid, ''))
 
             meta = dict(entry.__dict__)
             meta.pop('msgid', None)
@@ -140,7 +140,7 @@ def _write_new_messages(po_file_path, trans_writer, meta_writer,
             meta.pop('tcomment', None)
 
             trans_writer.writerow(trans)
-            meta_writer.writerow([po_filename, str(meta)])
+            meta_writer.writerow([str(meta)])
 
     return new_trans
 
@@ -186,15 +186,15 @@ def po_to_csv_merge(languages, locale_root, po_files_path,
         trans_title = trans_reader.next()
         meta_title = meta_reader.next()
     except StopIteration:
-        trans_title = ['comment', 'msgid']
+        trans_title = ['file', 'comment', 'msgid']
         trans_title += map(lambda s: s + ':msgstr', languages)
-        meta_title = ['file', 'metadata']
+        meta_title = ['metadata']
 
     trans_writer, meta_writer = _get_new_csv_writers(
         trans_title, meta_title, local_trans_csv, local_meta_csv)
 
     for trans_row, meta_row in izip(trans_reader, meta_reader):
-        msgids.append(trans_row[1])
+        msgids.append(trans_row[2])
         trans_writer.writerow(trans_row)
         meta_writer.writerow(meta_row)
 
@@ -209,6 +209,8 @@ def po_to_csv_merge(languages, locale_root, po_files_path,
         for lang in languages[1:]:
             po_file_path = os.path.join(locale_root, lang,
                                         po_files_path, po_filename)
+            if not os.path.exists(po_file_path):
+                open(po_file_path, 'a').close()
             new_msgstrs[lang] = _get_new_msgstrs(po_file_path, msgids)
 
         if len(new_msgstrs[languages[1]].keys()) > 0:
@@ -245,24 +247,27 @@ def csv_to_po(trans_csv_path, meta_csv_path, locale_root,
         # empty file
         return
 
-    trans_languages = _prepare_locale_dirs(title_row[2:], locale_root)
+    trans_languages = _prepare_locale_dirs(title_row[3:], locale_root)
 
     po_files = {}
 
     meta_reader.next()
     # go through every row in downloaded csv file
     for trans_row, meta_row in izip(trans_reader, meta_reader):
-        filename = meta_row[0].rstrip()
-        metadata = meta_row[1].rstrip()
-        comment = trans_row[0]
-        msgid = trans_row[1]
+        filename = trans_row[0].rstrip()
+        metadata = meta_row[0].rstrip()
+        comment = trans_row[1]
+        msgid = trans_row[2]
 
         if filename not in po_files:
             _prepare_polib_files(po_files, filename, trans_languages,
                                  locale_root, po_files_path, header)
 
         _write_entries(po_files[filename], trans_languages, msgid,
-                       trans_row[2:], metadata, comment)
+                       trans_row[3:], metadata, comment)
+    for filename in po_files:
+        for lang in po_files[filename]:
+            po_files[filename][lang].save()
 
     trans_reader.close()
     meta_reader.close()
