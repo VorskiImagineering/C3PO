@@ -2,15 +2,21 @@
 # -*- coding: utf-8 -*-
 
 import ast
-import shutil
 import os
 import re
-from itertools import izip
+from itertools import izip_longest
 
 import polib
 
 from c3po.conf import settings
 from c3po.converters.unicode import UnicodeWriter, UnicodeReader
+
+
+METADATA_EMPTY = "{'comment': '', 'previous_msgctxt': None, " + \
+                 "'encoding': 'utf-8', 'obsolete': 0, 'msgid_plural': '', " + \
+                 "'msgstr_plural': {}, 'occurrences': [], 'msgctxt': None, " + \
+                 "'flags': [], 'previous_msgid': None, " + \
+                 "'previous_msgid_plural': None}"
 
 
 def _get_all_po_filenames(locale_root, lang, po_files_path):
@@ -86,7 +92,6 @@ def _write_entries(po_files, languages, msgid, msgstrs, metadata, comment):
         entry = polib.POEntry(**meta)
         entry.tcomment = comment
         entry.msgid = msgid
-        # TODO: If translation not in lang, msgstr should be empty
         if msgstrs[i]:
             start_ws = start.search(msgid)
             end_ws = end.search(msgid)
@@ -193,10 +198,10 @@ def po_to_csv_merge(languages, locale_root, po_files_path,
     trans_writer, meta_writer = _get_new_csv_writers(
         trans_title, meta_title, local_trans_csv, local_meta_csv)
 
-    for trans_row, meta_row in izip(trans_reader, meta_reader):
+    for trans_row, meta_row in izip_longest(trans_reader, meta_reader):
         msgids.append(trans_row[2])
         trans_writer.writerow(trans_row)
-        meta_writer.writerow(meta_row)
+        meta_writer.writerow(meta_row if meta_row else [METADATA_EMPTY])
 
     trans_reader.close()
     meta_reader.close()
@@ -236,7 +241,10 @@ def csv_to_po(trans_csv_path, meta_csv_path, locale_root,
                         with languages
     :param po_files_path: path from lang directory to po file
     """
-    shutil.rmtree(locale_root)
+    pattern = "^\w+.*po$"
+    for root, dirs, files in os.walk(locale_root):
+        for f in filter(lambda x: re.match(pattern, x), files):
+            os.remove(os.path.join(root, f))
 
     # read title row and prepare descriptors for po files in each lang
     trans_reader = UnicodeReader(trans_csv_path)
@@ -253,9 +261,9 @@ def csv_to_po(trans_csv_path, meta_csv_path, locale_root,
 
     meta_reader.next()
     # go through every row in downloaded csv file
-    for trans_row, meta_row in izip(trans_reader, meta_reader):
+    for trans_row, meta_row in izip_longest(trans_reader, meta_reader):
         filename = trans_row[0].rstrip()
-        metadata = meta_row[0].rstrip()
+        metadata = meta_row[0].rstrip() if meta_row else METADATA_EMPTY
         comment = trans_row[1]
         msgid = trans_row[2]
 
